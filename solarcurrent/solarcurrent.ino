@@ -7,7 +7,7 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <Wire.h>
-#include "secret.h"
+
 // define SECRET_SSID and SECRET_PASSWORD in this file
 #include "secret.h"
 
@@ -31,7 +31,11 @@ const int ledPin = 2;
 
 void setup() {
   Serial.begin(115200);
-  // default settings
+
+  Serial.println();
+  Serial.print("ESP Board MAC Address:  ");
+  Serial.println(WiFi.macAddress());
+  
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);

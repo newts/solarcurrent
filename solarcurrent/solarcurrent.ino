@@ -7,6 +7,7 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <Wire.h>
+#include <Arduino_JSON.h>
 
 // define SECRET_SSID and SECRET_PASSWORD in this file
 #include "secret.h"
@@ -24,19 +25,23 @@ PubSubClient client(espClient);
 long lastMsg = 0;
 char msg[50];
 int value = 0;
+char topic[50];
 
 
 // LED Pin
 const int ledPin = 2;
 
+char mac_buf[50];
+
 void setup() {
   Serial.begin(115200);
-
-  Serial.println();
-  Serial.print("ESP Board MAC Address:  ");
-  Serial.println(WiFi.macAddress());
-  
+  // default settings
   setup_wifi();
+  sprintf(topic,"solar-%s/currents", mac_buf);
+  Serial.print("hot topic: ");
+  Serial.println(topic);
+  
+  
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
 
@@ -61,6 +66,19 @@ void setup_wifi() {
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+
+   WiFi.macAddress().toCharArray(mac_buf,20);
+   Serial.println(mac_buf);
+   // remove colons
+   //
+   char *mp = mac_buf;
+   while(*mp) {
+     if (*mp == ':') {
+       strcpy(mp,mp+1);
+     }
+     mp++;
+   }
+   Serial.println(mac_buf);
 }
 
 void callback(char* topic, byte* message, unsigned int length) {
@@ -122,7 +140,6 @@ void reconnect() {
 
 void loop() {
   int c1, c2, c3, c4;
-  char buf[100];
   
   if (!client.connected()) {
     reconnect();
@@ -133,14 +150,26 @@ void loop() {
   if (now - lastMsg > 6000) {
     lastMsg = now;
 
+    JSONVar payload;
+    payload["machine_id"] = mac_buf;
+
     // 0 3 6 7   36 39 34 35 
     c1 = analogRead(36);
     c2 = analogRead(39);
     c3 = analogRead(34);
     c4 = analogRead(35);
-    sprintf(buf,"%d,%d,%d,%d", c1,c2,c3,c4);
-    Serial.println(buf);
- 
-    client.publish("esp32/foo",buf);
+    Serial.printf("%d,%d,%d,%d\n", c1,c2,c3,c4);
+    
+    payload["c1"] = c1;
+    payload["c2"] = c1;
+    payload["c3"] = c1;
+    payload["c4"] = c1;
+
+    Serial.println(payload);
+    String payload_string = JSON.stringify(payload);
+    char payload_buf[200];
+    payload_string.toCharArray(payload_buf, 200);
+    
+    client.publish(topic,payload_buf);
   }
 }

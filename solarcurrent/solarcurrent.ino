@@ -154,16 +154,16 @@ void loop() {
     payload["machine_id"] = mac_buf;
 
     // 0 3 6 7   36 39 34 35 
-    c1 = analogRead(36);
-    c2 = analogRead(39);
-    c3 = analogRead(34);
-    c4 = analogRead(35);
+    c1 = analogRead(34);
+    c2 = analogRead(35);
+    c3 = analogRead(32);
+    c4 = analogRead(33);
     Serial.printf("%d,%d,%d,%d\n", c1,c2,c3,c4);
     
     payload["c1"] = c1;
-    payload["c2"] = c1;
-    payload["c3"] = c1;
-    payload["c4"] = c1;
+    payload["c2"] = c2;
+    payload["c3"] = c3;
+    payload["c4"] = c4;
 
     Serial.println(payload);
     String payload_string = JSON.stringify(payload);
